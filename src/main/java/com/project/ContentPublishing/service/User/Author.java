@@ -1,78 +1,40 @@
-package com.project.ContentPublishing.service;
+package com.project.ContentPublishing.service.User;
 
 import com.project.ContentPublishing.Exception.ResourceNotFoundException;
 import com.project.ContentPublishing.dto.Request.ArticleRequest;
 import com.project.ContentPublishing.dto.Response.ArticleResponse;
 import com.project.ContentPublishing.mapper.ArticleMapper;
-import com.project.ContentPublishing.model.*;
+import com.project.ContentPublishing.model.Article;
+import com.project.ContentPublishing.model.ArticleStatus;
+import com.project.ContentPublishing.model.User;
 import com.project.ContentPublishing.repository.ArticleRepository;
 import com.project.ContentPublishing.repository.CommentRepository;
 import com.project.ContentPublishing.repository.LikeRepository;
 import com.project.ContentPublishing.repository.UserRepository;
+import com.project.ContentPublishing.service.Notification.NotificationService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class UserService {
+public class Author {
     private final UserRepository userRepository;
     private final ArticleRepository articleRepository;
     private final ArticleMapper articleMapper;
     private final LikeRepository likeRepository;
     private final CommentRepository commentRepository;
+private final NotificationService notificationService;
 
-
-    @PreAuthorize("hasRole('Reader')")
-    public List<ArticleResponse> browsesContent() {
-        List<Article> articles =
-                articleRepository.findByStatus(ArticleStatus.PUBLISHED);
-
-        return articles.stream()
-                .map(articleMapper::toDto)
-                .toList();
-    }
-
-    @PreAuthorize("hasRole('READER')")
-    public void addComment(Long articleId, Long userId, String content) {
-        Article article = articleRepository.findById(Math.toIntExact(articleId))
+    private Article getOwnArticle(Long articleId, Long authorId) {
+        Article article = articleRepository.findById(articleId)
                 .orElseThrow(() -> new ResourceNotFoundException("Article not found"));
-
-        Comment comment = Comment.builder()
-                .article(article).
-                id(articleId)
-                .content(content)
-                .createdAt(LocalDateTime.now())
-                .build();
-
-        commentRepository.save(comment);
-    }
-
-    public void removeComment(Long commentId, Long userId) {
-        Comment comment = commentRepository.findById(commentId)
-                .orElseThrow(() -> new ResourceNotFoundException("Comment not found"));
-
-        if (!comment.getId().equals(userId)) {
-            throw new ResourceNotFoundException("Comment not found");
-        }
-        commentRepository.delete(comment);
-    }
-
-    @PreAuthorize("hasRole('READER')")
-    public void likeArticle(Long articleId, Long userId) {
-        Article article = articleRepository.findById(Math.toIntExact(articleId))
-                .orElseThrow(() -> new ResourceNotFoundException("Article not found"));
-
-        boolean alreadyLiked = likeRepository.existsByArticleIdAndUserId(articleId, userId);
-        if (alreadyLiked) {
-            throw new IllegalStateException("Article already liked");
-        }
-
-        Like like = new Like(article, userId);
-        likeRepository.save(like);
+        return article;
     }
 
     @PreAuthorize("hasRole('Author')")
@@ -105,6 +67,41 @@ public class UserService {
         article.setUpdatedAt(LocalDateTime.now());
 
         return articleMapper.toDto(articleRepository.save(article));
+    }
+
+    @PreAuthorize("hasRole('AUTHOR')")
+    public void deleteArticle(Long articleId, Long authorId) {
+        Article article = getOwnArticle(articleId, authorId);
+        articleRepository.delete(article);
+    }
+
+    @PreAuthorize("hasRole('AUTHOR')")
+    public ArticleResponse submitForReview(Long articleId, Long authorId) {
+        Article article = getOwnArticle(articleId, authorId);
+
+        if (article.getStatus() != ArticleStatus.DRAFT) {
+            throw new IllegalStateException("Only DRAFT articles can be submitted for review");
+        }
+
+        article.setStatus(ArticleStatus.UNDER_REVIEW);
+        article.setUpdatedAt(LocalDateTime.now());
+
+        Article saved = articleRepository.save(article);
+
+        notificationService.notifyEditorsArticleSubmitted(saved);
+
+        return articleMapper.toDto(saved);
+    }
+
+    @PreAuthorize("hasRole('AUTHOR')")
+    public List<ArticleResponse> getMyArticles(Long authorId) {
+        userRepository.findById(Math.toIntExact(authorId))
+                .orElseThrow(() -> new ResourceNotFoundException("Author not found"));
+
+        return articleRepository.findByAuthorId(authorId)
+                .stream()
+                .map(articleMapper::toDto)
+                .collect(Collectors.toList());
     }
 
 

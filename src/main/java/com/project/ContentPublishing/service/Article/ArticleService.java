@@ -1,4 +1,4 @@
-package com.project.ContentPublishing.service;
+package com.project.ContentPublishing.service.Article;
 
 import org.springframework.stereotype.Service;
 

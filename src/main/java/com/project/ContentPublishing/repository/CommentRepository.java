@@ -1,7 +1,14 @@
 package com.project.ContentPublishing.repository;
 
+import com.project.ContentPublishing.dto.Response.CommentResponse;
 import com.project.ContentPublishing.model.Comment;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
+import java.util.Arrays;
+import java.util.List;
+
+@Repository
 public interface CommentRepository extends JpaRepository<Comment, Long> {
+    List<Comment> findByArticleId(Long articleId);
 }

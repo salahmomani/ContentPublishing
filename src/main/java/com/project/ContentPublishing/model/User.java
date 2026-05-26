@@ -1,9 +1,7 @@
 package com.project.ContentPublishing.model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
@@ -15,8 +13,9 @@ import java.time.LocalDateTime;
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    String userName;
+    Long Id;
 
+    String userName;
 
     @Column(nullable = false, unique = true)
     private String email;
@@ -36,4 +35,5 @@ public class User {
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;
+
 }
