@@ -9,7 +9,7 @@ import com.project.ContentPublishing.dto.Response.UserResponse;
 import com.project.ContentPublishing.mapper.CategoryMapper;
 import com.project.ContentPublishing.mapper.PlatformSettingsMapper;
 import com.project.ContentPublishing.mapper.UserMapper;
-import com.project.ContentPublishing.model.Category;
+import com.project.ContentPublishing.model.ArticleCategory;
 import com.project.ContentPublishing.model.PlatformSettings;
 import com.project.ContentPublishing.model.Roles;
 import com.project.ContentPublishing.model.User;
@@ -79,7 +79,7 @@ public class Admin {
             throw new IllegalStateException("Category already exists");
         }
 
-        Category category = Category.builder()
+        ArticleCategory category = ArticleCategory.builder()
                 .name(request.getName())
                 .description(request.getDescription())
                 .build();
@@ -89,7 +89,7 @@ public class Admin {
 
     @PreAuthorize("hasRole('ADMIN')")
     public CategoryResponse updateCategory(Long categoryId, CategoryRequest request) {
-        Category category = (Category) categoryRepository.findById(categoryId)
+        ArticleCategory category = (ArticleCategory) categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new ResourceNotFoundException("Category not found"));
 
         category.setName(request.getName());
@@ -100,7 +100,7 @@ public class Admin {
 
     @PreAuthorize("hasRole('ADMIN')")
     public void deleteCategory(Long categoryId) {
-        Category category = (Category) categoryRepository.findById(categoryId)
+        ArticleCategory category = (ArticleCategory) categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new ResourceNotFoundException("Category not found"));
 
         categoryRepository.delete(category);
@@ -117,7 +117,7 @@ public class Admin {
     @PreAuthorize("hasRole('ADMIN')")
     public PlatformSettingsResponse getSettings() {
         return settingsRepository.findFirstBy()
-                .map(categoryMapper::toDto)
+                .map(platformSettingsMapper::toDto)
                 .orElseThrow(() -> new ResourceNotFoundException("Settings not found"));
     }
 

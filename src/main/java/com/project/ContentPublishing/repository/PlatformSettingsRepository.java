@@ -8,6 +8,6 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
 @Repository
-public interface PlatformSettingsRepository extends JpaRepository<PlatformSettingsResponse, Long> {
+public interface PlatformSettingsRepository extends JpaRepository<PlatformSettings, Long> {
     Optional<PlatformSettings> findFirstBy();
 }
