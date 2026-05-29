@@ -8,14 +8,8 @@ import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring")
 public interface ArticleMapper {
-    @Mapping(target = "id", ignore = true)
-    @Mapping(target = "author", ignore = true)
-    @Mapping(target = "status", ignore = true)
-    @Mapping(target = "createdAt", ignore = true)
-    @Mapping(target = "updatedAt", ignore = true)
-    Article toEntity(ArticleRequest request);
-
-    @Mapping(source = "author.username", target = "authorUsername")
-    @Mapping(source = "category.name", target = "categoryName")
+    @Mapping(source = "author.userName", target = "author")
+    @Mapping(source = "category.name", target = "category")
+    @Mapping(source = "commentCount", target = "commentCount")
     ArticleResponse toDto(Article article);
 }

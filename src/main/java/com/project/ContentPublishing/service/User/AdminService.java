@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class Admin {
+public class AdminService {
 
     private final UserRepository userRepository;
     private final UserMapper userMapper;

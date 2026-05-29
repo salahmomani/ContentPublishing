@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @Entity
@@ -33,10 +34,13 @@ public class Article {
     @Column(length = 500)
     private String excerpt;
 
-    private String tags;
-
-    private String category;
-
+    @ElementCollection
+    @CollectionTable(name = "article_tags", joinColumns = @JoinColumn(name = "article_id"))
+    @Column(name = "tag")
+    private List<String> tags;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id")
+    private ArticleCategory category;
     @Enumerated(EnumType.STRING)
     private ArticleStatus status;
 
@@ -49,4 +53,10 @@ public class Article {
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;
+    @Column(name = "comment_count")
+    private int commentCount = 0;
+
+    public void transitionTo(ArticleStatus next) {
+        this.status = this.status.transitionTo(next);
+    }
 }

@@ -1,11 +1,13 @@
 package com.project.ContentPublishing.service.Notification;
 
+import com.project.ContentPublishing.Exception.ResourceNotFoundException;
 import com.project.ContentPublishing.model.*;
 import com.project.ContentPublishing.repository.NotificationRepository;
 import com.project.ContentPublishing.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -15,7 +17,7 @@ import java.util.List;
 public class NotificationService {
 
     private final NotificationRepository notificationRepository;
-private final UserRepository userRepository;
+    private final UserRepository userRepository;
     private static final Logger log = LoggerFactory.getLogger(NotificationService.class);
 
     public void notifyAuthorArticlePublished(Article article) {
@@ -49,6 +51,7 @@ private final UserRepository userRepository;
                 notification.getMessage()
         );
     }
+
     public void notifyEditorsArticleSubmitted(Article article) {
         List<User> editors = userRepository.findByRole(Roles.Editor);
 
@@ -67,5 +70,22 @@ private final UserRepository userRepository;
                     notification.getMessage()
             );
         });
+    }
+
+    public List<Notification> getMyNotifications(Long userId) {
+        return notificationRepository
+                .findByRecipientIdOrderByCreatedAtDesc(userId);
+    }
+
+    public void markAsRead(Long notificationId, Long userId) {
+        Notification notification = notificationRepository.findById(notificationId)
+                .orElseThrow(() -> new ResourceNotFoundException("Notification not found"));
+
+        if (!notification.getRecipient().getId().equals(userId)) {
+            throw new AccessDeniedException("Not your notification");
+        }
+
+        notification.setRead(true);
+        notificationRepository.save(notification);
     }
 }

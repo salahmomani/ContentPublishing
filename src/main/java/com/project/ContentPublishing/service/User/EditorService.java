@@ -22,7 +22,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class Editor {
+public class EditorService {
     private final UserRepository userRepository;
     private final ArticleRepository articleRepository;
     private final ArticleMapper articleMapper;
@@ -98,6 +98,11 @@ public class Editor {
     public void deleteComment(Long commentId) {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Comment not found"));
+
+        Article article = comment.getArticle();
+        article.setCommentCount(Math.max(0, article.getCommentCount() - 1));
+        articleRepository.save(article);
+
         commentRepository.delete(comment);
     }
 }

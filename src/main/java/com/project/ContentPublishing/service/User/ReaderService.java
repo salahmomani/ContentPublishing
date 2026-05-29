@@ -1,32 +1,36 @@
 package com.project.ContentPublishing.service.User;
 
 import com.project.ContentPublishing.Exception.ResourceNotFoundException;
-import com.project.ContentPublishing.dto.Request.ArticleRequest;
+import com.project.ContentPublishing.dto.Request.CommentRequest;
 import com.project.ContentPublishing.dto.Response.ArticleResponse;
+import com.project.ContentPublishing.dto.Response.CommentResponse;
 import com.project.ContentPublishing.mapper.ArticleMapper;
+import com.project.ContentPublishing.mapper.CommentMapper;
 import com.project.ContentPublishing.model.*;
 import com.project.ContentPublishing.repository.ArticleRepository;
 import com.project.ContentPublishing.repository.CommentRepository;
 import com.project.ContentPublishing.repository.LikeRepository;
 import com.project.ContentPublishing.repository.UserRepository;
+import com.project.ContentPublishing.service.Notification.NotificationService;
+import jakarta.persistence.Cacheable;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
-
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class Reader {
+public class ReaderService {
     private final UserRepository userRepository;
     private final ArticleRepository articleRepository;
     private final ArticleMapper articleMapper;
     private final LikeRepository likeRepository;
     private final CommentRepository commentRepository;
+    private final NotificationService notificationService;
+    private final CommentMapper commentMapper;
 
-
-    @PreAuthorize("hasRole('Reader')")
+    @PreAuthorize("hasRole('READER')")
     public List<ArticleResponse> browsesContent() {
         List<Article> articles =
                 articleRepository.findByStatus(ArticleStatus.PUBLISHED);
@@ -37,18 +41,26 @@ public class Reader {
     }
 
     @PreAuthorize("hasRole('READER')")
-    public void addComment(Long articleId, Long userId, String content) {
-        Article article = articleRepository.findById(articleId)
-                .orElseThrow(() -> new ResourceNotFoundException("Article not found"));
+    public CommentResponse addComment(Long articleId, Long userId, CommentRequest request) {
+        Article article = articleRepository.findByIdAndStatus(articleId, ArticleStatus.PUBLISHED)
+                .orElseThrow(() -> new ResourceNotFoundException("Article not found or not published"));
+
+        User user = userRepository.findById(Math.toIntExact(userId))
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         Comment comment = Comment.builder()
-                .article(article).
-                id(articleId)
-                .content(content)
-                .createdAt(LocalDateTime.now())
+                .article(article)
+                .user(user)
+                .content(request.getContent())
                 .build();
 
         commentRepository.save(comment);
+        article.setCommentCount(article.getCommentCount() + 1);
+        articleRepository.save(article);
+
+        notificationService.notifyAuthorArticlePublished(article);
+
+        return commentMapper.toDto(comment);
     }
 
     @PreAuthorize("hasRole('READER')")
@@ -56,9 +68,13 @@ public class Reader {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Comment not found"));
 
-        if (!comment.getId().equals(userId)) {
-            throw new ResourceNotFoundException("Comment not found");
+        if (!comment.getUser().getId().equals(userId)) {
+            throw new AccessDeniedException("You can only delete your own comments");
         }
+        Article article = comment.getArticle();
+        article.setCommentCount(Math.max(0, article.getCommentCount() - 1));
+        articleRepository.save(article);
+
         commentRepository.delete(comment);
     }
 
@@ -72,7 +88,11 @@ public class Reader {
             throw new IllegalStateException("Article already liked");
         }
 
-        Like like = new Like(article, userId);
+        Like like = Like.builder()
+                .article(article)
+                .user(userRepository.findById(Math.toIntExact(userId))
+                        .orElseThrow(() -> new ResourceNotFoundException("User not found")))
+                .build();
         likeRepository.save(like);
     }
 

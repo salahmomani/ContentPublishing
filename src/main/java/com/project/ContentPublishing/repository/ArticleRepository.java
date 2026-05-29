@@ -7,11 +7,14 @@ import org.springframework.stereotype.Repository;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface ArticleRepository extends JpaRepository<Article, Long> {
 
-    List<Article> findByStatus(ArticleStatus articleStatus);
-
+    List<Article> findByStatus(ArticleStatus status);
     List<Article> findByAuthorId(Long authorId);
+    List<Article> findByStatusIn(List<ArticleStatus> statuses);
+    Optional<Article> findByIdAndStatus(Long id, ArticleStatus status);
+    boolean existsBySlug(String slug);
 }

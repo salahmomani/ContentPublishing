@@ -9,8 +9,6 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring")
 public interface UserMapper {
 
-    User toEntity(UserRequest dto);
-
-    @Mapping(source = "role", target = "role")
+    @Mapping(source = "userName", target = "username")
     UserResponse toDto(User user);
 }

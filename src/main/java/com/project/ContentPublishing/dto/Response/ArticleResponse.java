@@ -1,9 +1,11 @@
 package com.project.ContentPublishing.dto.Response;
 
 
+import com.project.ContentPublishing.model.ArticleCategory;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Set;
 
 @Data
@@ -21,7 +23,7 @@ public class ArticleResponse {
 
     private String category;
 
-    private Set<String> tags;
+    private List<String> tags;
 
     private String status;
 
@@ -32,5 +34,7 @@ public class ArticleResponse {
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;
+
+    private int commentCount;
 
 }
