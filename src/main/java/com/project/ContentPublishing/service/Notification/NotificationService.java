@@ -7,6 +7,8 @@ import com.project.ContentPublishing.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
@@ -71,12 +73,12 @@ public class NotificationService {
             );
         });
     }
-
+    @Cacheable(value = "notifications", key = "#userId")
     public List<Notification> getMyNotifications(Long userId) {
         return notificationRepository
                 .findByRecipientIdOrderByCreatedAtDesc(userId);
     }
-
+    @CacheEvict(value = "notifications", key = "#userId")
     public void markAsRead(Long notificationId, Long userId) {
         Notification notification = notificationRepository.findById(notificationId)
                 .orElseThrow(() -> new ResourceNotFoundException("Notification not found"));

@@ -13,6 +13,8 @@ import com.project.ContentPublishing.repository.LikeRepository;
 import com.project.ContentPublishing.repository.UserRepository;
 import com.project.ContentPublishing.service.Notification.NotificationService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
@@ -28,7 +30,7 @@ public class AuthorService {
     private final ArticleMapper articleMapper;
     private final LikeRepository likeRepository;
     private final CommentRepository commentRepository;
-private final NotificationService notificationService;
+    private final NotificationService notificationService;
 
     private Article getOwnArticle(Long articleId, Long authorId) {
         Article article = articleRepository.findById(articleId)
@@ -37,8 +39,9 @@ private final NotificationService notificationService;
     }
 
     @PreAuthorize("hasRole('Author')")
+    @CacheEvict(value = {"published-articles", "articles-by-category", "articles-by-tag"}, allEntries = true)
     public ArticleResponse createArticle(ArticleRequest articleRequest, Long authorId) {
-        User author = userRepository.findById(Math.toIntExact(authorId)).orElseThrow(() ->
+        User author = userRepository.findById(authorId).orElseThrow(() ->
                 new ResourceNotFoundException("Author not found"));
         Article article = Article.builder().
                 title(articleRequest.getTitle()).
@@ -50,6 +53,7 @@ private final NotificationService notificationService;
     }
 
     @PreAuthorize("hasRole('AUTHOR')")
+    @CacheEvict(value = {"published-articles", "article", "articles-by-category", "articles-by-tag"}, allEntries = true)
     public ArticleResponse updateArticle(Long articleId, ArticleRequest request, Long authorId) {
         Article article = Article.builder().
                 title(request.getTitle()).
@@ -69,12 +73,14 @@ private final NotificationService notificationService;
     }
 
     @PreAuthorize("hasRole('AUTHOR')")
+    @CacheEvict(value = {"published-articles", "article", "articles-by-category", "articles-by-tag"}, allEntries = true)
     public void deleteArticle(Long articleId, Long authorId) {
         Article article = getOwnArticle(articleId, authorId);
         articleRepository.delete(article);
     }
 
     @PreAuthorize("hasRole('AUTHOR')")
+    @CacheEvict(value = {"published-articles", "article", "articles-by-category", "articles-by-tag"}, allEntries = true)
     public ArticleResponse submitForReview(Long articleId, Long authorId) {
         Article article = getOwnArticle(articleId, authorId);
 
@@ -93,8 +99,9 @@ private final NotificationService notificationService;
     }
 
     @PreAuthorize("hasRole('AUTHOR')")
+    @Cacheable(value = "my-articles", key = "#authorId")
     public List<ArticleResponse> getMyArticles(Long authorId) {
-        userRepository.findById(Math.toIntExact(authorId))
+        userRepository.findById(authorId)
                 .orElseThrow(() -> new ResourceNotFoundException("Author not found"));
 
         return articleRepository.findByAuthorId(authorId)

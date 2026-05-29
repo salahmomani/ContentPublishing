@@ -12,8 +12,8 @@ import com.project.ContentPublishing.repository.CommentRepository;
 import com.project.ContentPublishing.repository.LikeRepository;
 import com.project.ContentPublishing.repository.UserRepository;
 import com.project.ContentPublishing.service.Notification.NotificationService;
-import jakarta.persistence.Cacheable;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -31,6 +31,7 @@ public class ReaderService {
     private final CommentMapper commentMapper;
 
     @PreAuthorize("hasRole('READER')")
+    @Cacheable(value = "published-articles")
     public List<ArticleResponse> browsesContent() {
         List<Article> articles =
                 articleRepository.findByStatus(ArticleStatus.PUBLISHED);
@@ -45,7 +46,7 @@ public class ReaderService {
         Article article = articleRepository.findByIdAndStatus(articleId, ArticleStatus.PUBLISHED)
                 .orElseThrow(() -> new ResourceNotFoundException("Article not found or not published"));
 
-        User user = userRepository.findById(Math.toIntExact(userId))
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         Comment comment = Comment.builder()
@@ -90,13 +91,14 @@ public class ReaderService {
 
         Like like = Like.builder()
                 .article(article)
-                .user(userRepository.findById(Math.toIntExact(userId))
+                .user(userRepository.findById(userId)
                         .orElseThrow(() -> new ResourceNotFoundException("User not found")))
                 .build();
         likeRepository.save(like);
     }
 
     @PreAuthorize("hasRole('READER')")
+    @Cacheable(value = "article", key = "#articleId")
     public ArticleResponse viewArticle(Long articleId) {
         Article article = articleRepository.findById(articleId)
                 .orElseThrow(() -> new ResourceNotFoundException("Article not found"));

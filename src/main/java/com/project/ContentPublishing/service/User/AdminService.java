@@ -17,6 +17,8 @@ import com.project.ContentPublishing.repository.CategoryRepository;
 import com.project.ContentPublishing.repository.PlatformSettingsRepository;
 import com.project.ContentPublishing.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
@@ -35,6 +37,7 @@ public class AdminService {
     private final PlatformSettingsMapper platformSettingsMapper;
 
     @PreAuthorize("hasRole('ADMIN')")
+    @Cacheable(value = "users")
     public List<UserResponse> getAllUsers() {
         return userRepository.findAll()
                 .stream()
@@ -43,8 +46,9 @@ public class AdminService {
     }
 
     @PreAuthorize("hasRole('ADMIN')")
+    @CacheEvict(value = "users", allEntries = true)
     public UserResponse changeUserRole(Long userId, Roles newRole) {
-        User user = userRepository.findById(Math.toIntExact(userId))
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         user.setRole(newRole);
@@ -53,15 +57,16 @@ public class AdminService {
 
     @PreAuthorize("hasRole('ADMIN')")
     public void deleteUser(Long userId) {
-        User user = userRepository.findById(Math.toIntExact(userId))
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         userRepository.delete(user);
     }
 
     @PreAuthorize("hasRole('ADMIN')")
+    @CacheEvict(value = "users", allEntries = true)
     public UserResponse banUser(Long userId) {
-        User user = userRepository.findById(Math.toIntExact(userId))
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         if (!user.isEnabled()) {
@@ -74,6 +79,7 @@ public class AdminService {
     }
 
     @PreAuthorize("hasRole('ADMIN')")
+    @CacheEvict(value = "categories", allEntries = true)
     public CategoryResponse createCategory(CategoryRequest request) {
         if (categoryRepository.existsByName(request.getName())) {
             throw new IllegalStateException("Category already exists");
@@ -99,6 +105,7 @@ public class AdminService {
     }
 
     @PreAuthorize("hasRole('ADMIN')")
+    @CacheEvict(value = "categories", allEntries = true)
     public void deleteCategory(Long categoryId) {
         ArticleCategory category = (ArticleCategory) categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new ResourceNotFoundException("Category not found"));
@@ -107,6 +114,7 @@ public class AdminService {
     }
 
     @PreAuthorize("hasRole('ADMIN')")
+    @Cacheable(value = "categories")
     public List<CategoryResponse> getAllCategories() {
         return categoryRepository.findAll()
                 .stream()
@@ -115,6 +123,7 @@ public class AdminService {
     }
 
     @PreAuthorize("hasRole('ADMIN')")
+    @Cacheable(value = "settings")
     public PlatformSettingsResponse getSettings() {
         return settingsRepository.findFirstBy()
                 .map(platformSettingsMapper::toDto)
@@ -122,6 +131,7 @@ public class AdminService {
     }
 
     @PreAuthorize("hasRole('ADMIN')")
+    @CacheEvict(value = "settings", allEntries = true)
     public PlatformSettingsResponse updateSettings(PlatformSettingsRequest request) {
         PlatformSettings settings = settingsRepository.findFirstBy()
                 .orElse(new PlatformSettings());

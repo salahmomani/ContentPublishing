@@ -14,6 +14,8 @@ import com.project.ContentPublishing.repository.LikeRepository;
 import com.project.ContentPublishing.repository.UserRepository;
 import com.project.ContentPublishing.service.Notification.NotificationService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
@@ -44,6 +46,7 @@ public class EditorService {
     }
 
     @PreAuthorize("hasRole('EDITOR')")
+    @Cacheable(value = "pending-articles")
     public List<ArticleResponse> getPendingArticles() {
         return articleRepository.findByStatus(ArticleStatus.UNDER_REVIEW)
                 .stream()
@@ -52,13 +55,14 @@ public class EditorService {
     }
 
     @PreAuthorize("hasRole('EDITOR')")
-
+    @Cacheable(value = "article", key = "#articleId")
     public ArticleResponse reviewArticle(Long articleId) {
         Article article = getArticleByStatus(articleId, ArticleStatus.UNDER_REVIEW);
         return articleMapper.toDto(article);
     }
 
     @PreAuthorize("hasRole('EDITOR')")
+    @Cacheable(value = "article-comments", key = "#articleId")
     public List<CommentResponse> getAllComments(Long articleId) {
         articleRepository.findById(articleId)
                 .orElseThrow(() -> new ResourceNotFoundException("Article not found"));
@@ -70,6 +74,8 @@ public class EditorService {
     }
 
     @PreAuthorize("hasRole('EDITOR')")
+    @CacheEvict(value = {"published-articles", "article", "pending-articles",
+            "articles-by-category", "articles-by-tag"}, allEntries = true)
     public ArticleResponse publishArticle(Long articleId) {
         Article article = getArticleByStatus(articleId, ArticleStatus.UNDER_REVIEW);
         article.setStatus(ArticleStatus.PUBLISHED);
@@ -81,6 +87,8 @@ public class EditorService {
     }
 
     @PreAuthorize("hasRole('EDITOR')")
+    @CacheEvict(value = {"published-articles", "article", "pending-articles",
+            "articles-by-category", "articles-by-tag"}, allEntries = true)
     public ArticleResponse rejectArticle(Long articleId, String reason) {
         Article article = getArticleByStatus(articleId, ArticleStatus.UNDER_REVIEW);
 
@@ -95,6 +103,7 @@ public class EditorService {
     }
 
     @PreAuthorize("hasRole('EDITOR')")
+    @CacheEvict(value = "article-comments", allEntries = true)
     public void deleteComment(Long commentId) {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Comment not found"));
