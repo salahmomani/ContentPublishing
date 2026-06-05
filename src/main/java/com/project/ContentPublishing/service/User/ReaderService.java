@@ -12,6 +12,7 @@ import com.project.ContentPublishing.repository.CommentRepository;
 import com.project.ContentPublishing.repository.LikeRepository;
 import com.project.ContentPublishing.repository.UserRepository;
 import com.project.ContentPublishing.service.Notification.NotificationService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.access.AccessDeniedException;
@@ -42,6 +43,7 @@ public class ReaderService {
     }
 
     @PreAuthorize("hasRole('READER')")
+    @Transactional
     public CommentResponse addComment(Long articleId, Long userId, CommentRequest request) {
         Article article = articleRepository.findByIdAndStatus(articleId, ArticleStatus.PUBLISHED)
                 .orElseThrow(() -> new ResourceNotFoundException("Article not found or not published"));
@@ -65,6 +67,7 @@ public class ReaderService {
     }
 
     @PreAuthorize("hasRole('READER')")
+    @Transactional
     public void removeComment(Long commentId, Long userId) {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Comment not found"));
@@ -80,6 +83,7 @@ public class ReaderService {
     }
 
     @PreAuthorize("hasRole('READER')")
+    @Transactional
     public void likeArticle(Long articleId, Long userId) {
         Article article = articleRepository.findById(articleId)
                 .orElseThrow(() -> new ResourceNotFoundException("Article not found"));

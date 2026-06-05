@@ -16,6 +16,7 @@ import com.project.ContentPublishing.model.User;
 import com.project.ContentPublishing.repository.CategoryRepository;
 import com.project.ContentPublishing.repository.PlatformSettingsRepository;
 import com.project.ContentPublishing.repository.UserRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -47,6 +48,7 @@ public class AdminService {
 
     @PreAuthorize("hasRole('ADMIN')")
     @CacheEvict(value = "users", allEntries = true)
+    @Transactional
     public UserResponse changeUserRole(Long userId, Roles newRole) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
@@ -56,6 +58,7 @@ public class AdminService {
     }
 
     @PreAuthorize("hasRole('ADMIN')")
+    @Transactional
     public void deleteUser(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
@@ -65,6 +68,7 @@ public class AdminService {
 
     @PreAuthorize("hasRole('ADMIN')")
     @CacheEvict(value = "users", allEntries = true)
+    @Transactional
     public UserResponse banUser(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
@@ -95,7 +99,7 @@ public class AdminService {
 
     @PreAuthorize("hasRole('ADMIN')")
     public CategoryResponse updateCategory(Long categoryId, CategoryRequest request) {
-        ArticleCategory category = (ArticleCategory) categoryRepository.findById(categoryId)
+        ArticleCategory category =  categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new ResourceNotFoundException("Category not found"));
 
         category.setName(request.getName());
@@ -107,7 +111,7 @@ public class AdminService {
     @PreAuthorize("hasRole('ADMIN')")
     @CacheEvict(value = "categories", allEntries = true)
     public void deleteCategory(Long categoryId) {
-        ArticleCategory category = (ArticleCategory) categoryRepository.findById(categoryId)
+        ArticleCategory category = categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new ResourceNotFoundException("Category not found"));
 
         categoryRepository.delete(category);

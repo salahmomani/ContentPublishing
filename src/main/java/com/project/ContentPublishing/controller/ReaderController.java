@@ -30,7 +30,7 @@ public class ReaderController {
     @PostMapping("/likeArticle/{articleId}")
     public void likeArticle(
             @PathVariable Long articleId,
-            @RequestBody User user) {
+            @AuthenticationPrincipal User user) {
         readerService.likeArticle(articleId, user.getId());
     }
 
@@ -39,7 +39,7 @@ public class ReaderController {
             @PathVariable Long articleId,
             @PathVariable Long userId,
             @RequestBody CommentRequest request,
-            @RequestBody User user) {
+            @AuthenticationPrincipal User user) {
         readerService.addComment(articleId, userId, request);
     }
 

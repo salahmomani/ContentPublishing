@@ -1,4 +1,4 @@
-package com.project.ContentPublishing.model;
+package com.project.ContentPublishing.service.SlugUtil;
 
 import com.project.ContentPublishing.repository.ArticleRepository;
 import lombok.RequiredArgsConstructor;

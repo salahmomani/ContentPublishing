@@ -12,6 +12,8 @@ import com.project.ContentPublishing.repository.CommentRepository;
 import com.project.ContentPublishing.repository.LikeRepository;
 import com.project.ContentPublishing.repository.UserRepository;
 import com.project.ContentPublishing.service.Notification.NotificationService;
+import com.project.ContentPublishing.service.SlugUtil.SlugUtil;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -28,9 +30,8 @@ public class AuthorService {
     private final UserRepository userRepository;
     private final ArticleRepository articleRepository;
     private final ArticleMapper articleMapper;
-    private final LikeRepository likeRepository;
-    private final CommentRepository commentRepository;
     private final NotificationService notificationService;
+    private final SlugUtil slugUtil;
 
     private Article getOwnArticle(Long articleId, Long authorId) {
         Article article = articleRepository.findById(articleId)
@@ -40,20 +41,23 @@ public class AuthorService {
 
     @PreAuthorize("hasRole('Author')")
     @CacheEvict(value = {"published-articles", "articles-by-category", "articles-by-tag"}, allEntries = true)
+    @Transactional
     public ArticleResponse createArticle(ArticleRequest articleRequest, Long authorId) {
         User author = userRepository.findById(authorId).orElseThrow(() ->
                 new ResourceNotFoundException("Author not found"));
-        Article article = Article.builder().
-                title(articleRequest.getTitle()).
-                body(articleRequest.getBody()).
-                excerpt(articleRequest.getExcerpt()).
-                status(ArticleStatus.DRAFT).
-                createdAt(LocalDateTime.now()).build();
+        Article article = Article.builder()
+                .title(articleRequest.getTitle())
+                .slug(slugUtil.generateUniqueSlug(articleRequest.getTitle()))
+                .body(articleRequest.getBody())
+                .excerpt(articleRequest.getExcerpt())
+                .status(ArticleStatus.DRAFT)
+                .createdAt(LocalDateTime.now()).build();
         return articleMapper.toDto(articleRepository.save(article));
     }
 
     @PreAuthorize("hasRole('AUTHOR')")
     @CacheEvict(value = {"published-articles", "article", "articles-by-category", "articles-by-tag"}, allEntries = true)
+    @Transactional
     public ArticleResponse updateArticle(Long articleId, ArticleRequest request, Long authorId) {
         Article article = Article.builder().
                 title(request.getTitle()).
@@ -68,12 +72,13 @@ public class AuthorService {
 
         article.setTitle(request.getTitle());
         article.setUpdatedAt(LocalDateTime.now());
-
+        article.setSlug(slugUtil.generateUniqueSlug(request.getTitle()));
         return articleMapper.toDto(articleRepository.save(article));
     }
 
     @PreAuthorize("hasRole('AUTHOR')")
     @CacheEvict(value = {"published-articles", "article", "articles-by-category", "articles-by-tag"}, allEntries = true)
+    @Transactional
     public void deleteArticle(Long articleId, Long authorId) {
         Article article = getOwnArticle(articleId, authorId);
         articleRepository.delete(article);
@@ -81,6 +86,7 @@ public class AuthorService {
 
     @PreAuthorize("hasRole('AUTHOR')")
     @CacheEvict(value = {"published-articles", "article", "articles-by-category", "articles-by-tag"}, allEntries = true)
+    @Transactional
     public ArticleResponse submitForReview(Long articleId, Long authorId) {
         Article article = getOwnArticle(articleId, authorId);
 

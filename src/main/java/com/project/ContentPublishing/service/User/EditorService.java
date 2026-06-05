@@ -13,6 +13,7 @@ import com.project.ContentPublishing.repository.CommentRepository;
 import com.project.ContentPublishing.repository.LikeRepository;
 import com.project.ContentPublishing.repository.UserRepository;
 import com.project.ContentPublishing.service.Notification.NotificationService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -76,6 +77,7 @@ public class EditorService {
     @PreAuthorize("hasRole('EDITOR')")
     @CacheEvict(value = {"published-articles", "article", "pending-articles",
             "articles-by-category", "articles-by-tag"}, allEntries = true)
+    @Transactional
     public ArticleResponse publishArticle(Long articleId) {
         Article article = getArticleByStatus(articleId, ArticleStatus.UNDER_REVIEW);
         article.setStatus(ArticleStatus.PUBLISHED);
@@ -89,6 +91,7 @@ public class EditorService {
     @PreAuthorize("hasRole('EDITOR')")
     @CacheEvict(value = {"published-articles", "article", "pending-articles",
             "articles-by-category", "articles-by-tag"}, allEntries = true)
+    @Transactional
     public ArticleResponse rejectArticle(Long articleId, String reason) {
         Article article = getArticleByStatus(articleId, ArticleStatus.UNDER_REVIEW);
 
