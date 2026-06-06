@@ -41,37 +41,61 @@ public class AuthorService {
 
     @CacheEvict(value = {"published-articles", "articles-by-category", "articles-by-tag"}, allEntries = true)
     @Transactional
-    public ArticleResponse createArticle(ArticleRequest articleRequest, Long authorId) {
-        User author = userRepository.findById(authorId).orElseThrow(() ->
-                new ResourceNotFoundException("Author not found"));
+    public ArticleResponse createArticle(ArticleRequest request, Long authorId) {
+        User author = userRepository.findById(authorId)
+                .orElseThrow(() -> new ResourceNotFoundException("Author not found"));
+
         Article article = Article.builder()
-                .title(articleRequest.getTitle())
-                .slug(slugUtil.generateUniqueSlug(articleRequest.getTitle()))
-                .body(articleRequest.getBody())
-                .excerpt(articleRequest.getExcerpt())
+                .title(request.getTitle())
+                .slug(slugUtil.generateUniqueSlug(request.getTitle()))
+                .body(request.getBody())
+                .excerpt(request.getExcerpt())
+                .tags(request.getTags())
+                .author(author)
                 .status(ArticleStatus.DRAFT)
-                .createdAt(LocalDateTime.now()).build();
+                .build();
+
         return articleMapper.toDto(articleRepository.save(article));
     }
 
     @CacheEvict(value = {"published-articles", "article", "articles-by-category", "articles-by-tag"}, allEntries = true)
     @Transactional
     public ArticleResponse updateArticle(Long articleId, ArticleRequest request, Long authorId) {
-        Article article = Article.builder().
-                title(request.getTitle()).
-                excerpt(request.getExcerpt()).
-                body(request.getBody()).
-                status(ArticleStatus.PUBLISHED).
-                updatedAt(LocalDateTime.now()).build();
+        Article article = getOwnArticle(articleId, authorId);  // 👈 fetch from DB
 
-        if (article.getStatus() == ArticleStatus.PUBLISHED) {
-            throw new IllegalStateException("Cannot edit a published article");
+        switch (article.getStatus()) {
+            case UNDER_REVIEW -> throw new IllegalStateException("Cannot edit while UNDER_REVIEW");
+            case ARCHIVED -> throw new IllegalStateException("Cannot edit an ARCHIVED article");
+            case PUBLISHED -> {
+                return createDraftCopy(article, request, authorId);
+            }
+            default -> {
+                article.setTitle(request.getTitle());
+                article.setBody(request.getBody());
+                article.setExcerpt(request.getExcerpt());
+                article.setSlug(slugUtil.generateUniqueSlug(request.getTitle()));
+                article.setUpdatedAt(LocalDateTime.now());
+                return articleMapper.toDto(articleRepository.save(article));
+            }
         }
+    }
 
-        article.setTitle(request.getTitle());
-        article.setUpdatedAt(LocalDateTime.now());
-        article.setSlug(slugUtil.generateUniqueSlug(request.getTitle()));
-        return articleMapper.toDto(articleRepository.save(article));
+
+    private ArticleResponse createDraftCopy(Article published, ArticleRequest request, Long authorId) {
+        User author = userRepository.findById(authorId)
+                .orElseThrow(() -> new ResourceNotFoundException("Author not found"));
+
+        Article draft = Article.builder()
+                .title(request.getTitle())
+                .slug(slugUtil.generateUniqueSlug(request.getTitle()))
+                .body(request.getBody())
+                .excerpt(request.getExcerpt())
+                .category(published.getCategory())
+                .author(author)
+                .status(ArticleStatus.DRAFT)
+                .build();
+
+        return articleMapper.toDto(articleRepository.save(draft));
     }
 
     @CacheEvict(value = {"published-articles", "article", "articles-by-category", "articles-by-tag"}, allEntries = true)
