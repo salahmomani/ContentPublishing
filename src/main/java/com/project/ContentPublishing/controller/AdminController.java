@@ -7,62 +7,64 @@ import com.project.ContentPublishing.dto.Response.PlatformSettingsResponse;
 import com.project.ContentPublishing.dto.Response.UserResponse;
 import com.project.ContentPublishing.model.Roles;
 import com.project.ContentPublishing.service.User.AdminService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/Admin")
+@RequestMapping("/admin")
 @RequiredArgsConstructor
 public class AdminController {
     private final AdminService adminService;
 
-    @GetMapping("/getAll")
+    @GetMapping("/users")
     public List<UserResponse> getAllUsers() {
         return adminService.getAllUsers();
 
     }
 
-    @PutMapping("/changeUserRole/{userId}")
+    @PutMapping("/users/{userId}/role")
     public UserResponse changeUserRole(@PathVariable Long userId, @RequestBody Roles newRole) {
         return adminService.changeUserRole(userId, newRole);
     }
 
-    @DeleteMapping("/deleteUser/{userId}")
+    @DeleteMapping("/users/{userId}")
     public void deleteUser(@PathVariable Long userId) {
         adminService.deleteUser(userId);
     }
 
 
-    @PostMapping("/banUser/{userId}")
+    @PutMapping("/users/{userId}/ban")
     public UserResponse banUser(@PathVariable Long userId) {
         return adminService.banUser(userId);
     }
 
-    @PostMapping("/createCategory")
+    @PostMapping("/categories")
     public CategoryResponse createCategory(@RequestBody CategoryRequest request) {
         return adminService.createCategory(request);
     }
 
 
-    @PutMapping("/updateCategory/{categoryId}")
+    @PutMapping("/categories/{categoryId}")
     public CategoryResponse updateCategory(@PathVariable Long categoryId, @RequestBody CategoryRequest request) {
 
         return adminService.updateCategory(categoryId, request);
     }
 
-    @DeleteMapping("/deleteCategory/{categoryId}")
+    @DeleteMapping("/categories/{categoryId}")
     public void deleteCategory(@PathVariable Long categoryId) {
         adminService.deleteCategory(categoryId);
     }
 
-    @GetMapping("/getAllCategories")
+    @GetMapping("/categories")
     public List<CategoryResponse> getAllCategories() {
         return adminService.getAllCategories();
     }
 
-    @GetMapping("/PlatformSettings")
+    @GetMapping("/settings")
     public PlatformSettingsResponse getSettings() {
         return adminService.getSettings();
     }
@@ -70,5 +72,12 @@ public class AdminController {
     @PutMapping("/updateSettings")
     public PlatformSettingsResponse updateSettings(@RequestBody PlatformSettingsRequest request) {
         return adminService.updateSettings(request);
+    }
+
+
+    @GetMapping("/whoami")
+    public String whoami(HttpServletRequest request) {
+        String token = request.getHeader("Authorization").substring(7);
+        return SecurityContextHolder.getContext().getAuthentication().getAuthorities().toString();
     }
 }

@@ -46,7 +46,6 @@ public class EditorService {
         return article;
     }
 
-    @PreAuthorize("hasRole('EDITOR')")
     @Cacheable(value = "pending-articles")
     public List<ArticleResponse> getPendingArticles() {
         return articleRepository.findByStatus(ArticleStatus.UNDER_REVIEW)
@@ -55,14 +54,12 @@ public class EditorService {
                 .toList();
     }
 
-    @PreAuthorize("hasRole('EDITOR')")
     @Cacheable(value = "article", key = "#articleId")
     public ArticleResponse reviewArticle(Long articleId) {
         Article article = getArticleByStatus(articleId, ArticleStatus.UNDER_REVIEW);
         return articleMapper.toDto(article);
     }
 
-    @PreAuthorize("hasRole('EDITOR')")
     @Cacheable(value = "article-comments", key = "#articleId")
     public List<CommentResponse> getAllComments(Long articleId) {
         articleRepository.findById(articleId)
@@ -74,7 +71,6 @@ public class EditorService {
                 .toList();
     }
 
-    @PreAuthorize("hasRole('EDITOR')")
     @CacheEvict(value = {"published-articles", "article", "pending-articles",
             "articles-by-category", "articles-by-tag"}, allEntries = true)
     @Transactional
@@ -88,7 +84,6 @@ public class EditorService {
 
     }
 
-    @PreAuthorize("hasRole('EDITOR')")
     @CacheEvict(value = {"published-articles", "article", "pending-articles",
             "articles-by-category", "articles-by-tag"}, allEntries = true)
     @Transactional
@@ -105,7 +100,6 @@ public class EditorService {
         return articleMapper.toDto(saved);
     }
 
-    @PreAuthorize("hasRole('EDITOR')")
     @CacheEvict(value = "article-comments", allEntries = true)
     public void deleteComment(Long commentId) {
         Comment comment = commentRepository.findById(commentId)

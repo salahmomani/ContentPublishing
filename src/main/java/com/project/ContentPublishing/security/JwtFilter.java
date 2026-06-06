@@ -23,11 +23,19 @@ public class JwtFilter extends OncePerRequestFilter {
     private final UserDetailsService userDetailsService;
 
     @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String path = request.getServletPath();
+        return path.startsWith("/auth") ||
+                path.startsWith("/h2-console");
+    }
+
+    @Override
     protected void doFilterInternal(
             HttpServletRequest request,
             HttpServletResponse response,
             FilterChain filterChain) throws ServletException, IOException {
-        if (request.getServletPath().startsWith("/auth")) {
+        if (request.getServletPath().startsWith("/auth") ||
+                request.getServletPath().startsWith("/h2-console")) {
             filterChain.doFilter(request, response);
             return;
         }

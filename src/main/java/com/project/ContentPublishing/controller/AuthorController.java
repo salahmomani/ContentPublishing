@@ -4,8 +4,13 @@ package com.project.ContentPublishing.controller;
 import com.project.ContentPublishing.dto.Request.ArticleRequest;
 import com.project.ContentPublishing.dto.Response.ArticleResponse;
 import com.project.ContentPublishing.model.User;
+import com.project.ContentPublishing.security.JwtService;
+import com.project.ContentPublishing.service.Security.AuthService;
 import com.project.ContentPublishing.service.User.AuthorService;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,10 +20,10 @@ import java.util.List;
 @RequestMapping("/author")
 @RequiredArgsConstructor
 public class AuthorController {
-
+    private final AuthService authService;
+    private final JwtService jwtService;
     private final AuthorService authorService;
-
-    @PostMapping
+    @PostMapping("/articles")
     public ArticleResponse createArticle(
             @RequestBody ArticleRequest request,
             @AuthenticationPrincipal User user) {

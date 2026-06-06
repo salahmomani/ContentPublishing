@@ -18,6 +18,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
+
 import java.util.List;
 
 @Service
@@ -31,7 +32,6 @@ public class ReaderService {
     private final NotificationService notificationService;
     private final CommentMapper commentMapper;
 
-    @PreAuthorize("hasRole('READER')")
     @Cacheable(value = "published-articles")
     public List<ArticleResponse> browsesContent() {
         List<Article> articles =
@@ -42,7 +42,6 @@ public class ReaderService {
                 .toList();
     }
 
-    @PreAuthorize("hasRole('READER')")
     @Transactional
     public CommentResponse addComment(Long articleId, Long userId, CommentRequest request) {
         Article article = articleRepository.findByIdAndStatus(articleId, ArticleStatus.PUBLISHED)
@@ -66,7 +65,6 @@ public class ReaderService {
         return commentMapper.toDto(comment);
     }
 
-    @PreAuthorize("hasRole('READER')")
     @Transactional
     public void removeComment(Long commentId, Long userId) {
         Comment comment = commentRepository.findById(commentId)
@@ -82,7 +80,6 @@ public class ReaderService {
         commentRepository.delete(comment);
     }
 
-    @PreAuthorize("hasRole('READER')")
     @Transactional
     public void likeArticle(Long articleId, Long userId) {
         Article article = articleRepository.findById(articleId)
@@ -101,7 +98,6 @@ public class ReaderService {
         likeRepository.save(like);
     }
 
-    @PreAuthorize("hasRole('READER')")
     @Cacheable(value = "article", key = "#articleId")
     public ArticleResponse viewArticle(Long articleId) {
         Article article = articleRepository.findById(articleId)

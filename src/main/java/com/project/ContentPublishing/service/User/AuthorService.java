@@ -39,7 +39,6 @@ public class AuthorService {
         return article;
     }
 
-    @PreAuthorize("hasRole('Author')")
     @CacheEvict(value = {"published-articles", "articles-by-category", "articles-by-tag"}, allEntries = true)
     @Transactional
     public ArticleResponse createArticle(ArticleRequest articleRequest, Long authorId) {
@@ -55,7 +54,6 @@ public class AuthorService {
         return articleMapper.toDto(articleRepository.save(article));
     }
 
-    @PreAuthorize("hasRole('AUTHOR')")
     @CacheEvict(value = {"published-articles", "article", "articles-by-category", "articles-by-tag"}, allEntries = true)
     @Transactional
     public ArticleResponse updateArticle(Long articleId, ArticleRequest request, Long authorId) {
@@ -76,7 +74,6 @@ public class AuthorService {
         return articleMapper.toDto(articleRepository.save(article));
     }
 
-    @PreAuthorize("hasRole('AUTHOR')")
     @CacheEvict(value = {"published-articles", "article", "articles-by-category", "articles-by-tag"}, allEntries = true)
     @Transactional
     public void deleteArticle(Long articleId, Long authorId) {
@@ -84,7 +81,6 @@ public class AuthorService {
         articleRepository.delete(article);
     }
 
-    @PreAuthorize("hasRole('AUTHOR')")
     @CacheEvict(value = {"published-articles", "article", "articles-by-category", "articles-by-tag"}, allEntries = true)
     @Transactional
     public ArticleResponse submitForReview(Long articleId, Long authorId) {
@@ -104,7 +100,6 @@ public class AuthorService {
         return articleMapper.toDto(saved);
     }
 
-    @PreAuthorize("hasRole('AUTHOR')")
     @Cacheable(value = "my-articles", key = "#authorId")
     public List<ArticleResponse> getMyArticles(Long authorId) {
         userRepository.findById(authorId)

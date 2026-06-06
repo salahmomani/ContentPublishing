@@ -37,7 +37,6 @@ public class AdminService {
     private final PlatformSettingsRepository settingsRepository;
     private final PlatformSettingsMapper platformSettingsMapper;
 
-    @PreAuthorize("hasRole('ADMIN')")
     @Cacheable(value = "users")
     public List<UserResponse> getAllUsers() {
         return userRepository.findAll()
@@ -46,7 +45,6 @@ public class AdminService {
                 .toList();
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
     @CacheEvict(value = "users", allEntries = true)
     @Transactional
     public UserResponse changeUserRole(Long userId, Roles newRole) {
@@ -56,8 +54,7 @@ public class AdminService {
         user.setRole(newRole);
         return userMapper.toDto(userRepository.save(user));
     }
-
-    @PreAuthorize("hasRole('ADMIN')")
+    @CacheEvict(value = "users", allEntries = true)
     @Transactional
     public void deleteUser(Long userId) {
         User user = userRepository.findById(userId)
@@ -66,7 +63,6 @@ public class AdminService {
         userRepository.delete(user);
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
     @CacheEvict(value = "users", allEntries = true)
     @Transactional
     public UserResponse banUser(Long userId) {
@@ -82,7 +78,6 @@ public class AdminService {
         return userMapper.toDto(userRepository.save(user));
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
     @CacheEvict(value = "categories", allEntries = true)
     public CategoryResponse createCategory(CategoryRequest request) {
         if (categoryRepository.existsByName(request.getName())) {
@@ -97,9 +92,9 @@ public class AdminService {
         return categoryMapper.toDto(categoryRepository.save(category));
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    @CacheEvict(value = "categories", allEntries = true)
     public CategoryResponse updateCategory(Long categoryId, CategoryRequest request) {
-        ArticleCategory category =  categoryRepository.findById(categoryId)
+        ArticleCategory category = categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new ResourceNotFoundException("Category not found"));
 
         category.setName(request.getName());
@@ -108,7 +103,6 @@ public class AdminService {
         return categoryMapper.toDto(categoryRepository.save(category));
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
     @CacheEvict(value = "categories", allEntries = true)
     public void deleteCategory(Long categoryId) {
         ArticleCategory category = categoryRepository.findById(categoryId)
@@ -117,7 +111,6 @@ public class AdminService {
         categoryRepository.delete(category);
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
     @Cacheable(value = "categories")
     public List<CategoryResponse> getAllCategories() {
         return categoryRepository.findAll()
@@ -126,7 +119,6 @@ public class AdminService {
                 .collect(Collectors.toList());
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
     @Cacheable(value = "settings")
     public PlatformSettingsResponse getSettings() {
         return settingsRepository.findFirstBy()
@@ -134,7 +126,6 @@ public class AdminService {
                 .orElseThrow(() -> new ResourceNotFoundException("Settings not found"));
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
     @CacheEvict(value = "settings", allEntries = true)
     public PlatformSettingsResponse updateSettings(PlatformSettingsRequest request) {
         PlatformSettings settings = settingsRepository.findFirstBy()
