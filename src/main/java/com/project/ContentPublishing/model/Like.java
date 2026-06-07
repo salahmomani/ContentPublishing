@@ -36,6 +36,4 @@ public class Like {
     @Column(updatable = false)
     private LocalDateTime createdAt;
 
-    public Like(Article article, Long userId) {
-    }
 }
