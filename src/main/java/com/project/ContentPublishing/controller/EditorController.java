@@ -29,7 +29,7 @@ public class EditorController {
         return editorService.publishArticle(articleId);
     }
 
-    @PostMapping("/rejectArticle/{articleId}")
+    @PostMapping("/articles/{articleId}/reject")
     public ArticleResponse rejectArticle(
             @PathVariable Long articleId,
             @RequestParam String reason) {
