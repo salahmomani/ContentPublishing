@@ -73,11 +73,4 @@ public class AdminController {
     public PlatformSettingsResponse updateSettings(@RequestBody PlatformSettingsRequest request) {
         return adminService.updateSettings(request);
     }
-
-
-    @GetMapping("/whoami")
-    public String whoami(HttpServletRequest request) {
-        String token = request.getHeader("Authorization").substring(7);
-        return SecurityContextHolder.getContext().getAuthentication().getAuthorities().toString();
-    }
 }
