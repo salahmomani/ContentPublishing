@@ -37,7 +37,6 @@ public class SecurityConfig {
                         .requestMatchers("/auth/**").permitAll()
                         .requestMatchers("/h2-console/**").permitAll()
                         .requestMatchers("/h2-console").permitAll()
-                        .requestMatchers("/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .headers(headers -> headers.disable())

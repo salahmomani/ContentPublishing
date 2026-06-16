@@ -54,6 +54,7 @@ public class AdminService {
         user.setRole(newRole);
         return userMapper.toDto(userRepository.save(user));
     }
+
     @CacheEvict(value = "users", allEntries = true)
     @Transactional
     public void deleteUser(Long userId) {

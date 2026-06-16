@@ -26,10 +26,8 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class EditorService {
-    private final UserRepository userRepository;
     private final ArticleRepository articleRepository;
     private final ArticleMapper articleMapper;
-    private final LikeRepository likeRepository;
     private final CommentRepository commentRepository;
     private final CommentMapper commentMapper;
     private final NotificationService notificationService;
@@ -95,7 +93,7 @@ public class EditorService {
 
         Article saved = articleRepository.save(article);
 
-        notificationService.notifyAuthorArticleRejected(saved, reason);  // 👈 notify author
+        notificationService.notifyAuthorArticleRejected(saved, reason);
 
         return articleMapper.toDto(saved);
     }

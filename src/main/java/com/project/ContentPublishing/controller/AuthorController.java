@@ -10,6 +10,7 @@ import com.project.ContentPublishing.service.User.AuthorService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,12 +19,11 @@ import java.util.List;
 @RequestMapping("/author")
 @RequiredArgsConstructor
 public class AuthorController {
-    private final AuthService authService;
-    private final JwtService jwtService;
     private final AuthorService authorService;
     private final AuthUtils authUtils;
 
     @PostMapping("/articles")
+    @PreAuthorize("hasRole('AUTHOR')")
     public ArticleResponse createArticle(
             @RequestBody @Valid ArticleRequest request,
             HttpServletRequest httpRequest) {
@@ -31,6 +31,7 @@ public class AuthorController {
     }
 
     @PutMapping("/{articleId}")
+    @PreAuthorize("hasRole('AUTHOR')")
     public ArticleResponse updateArticle(
             @PathVariable Long articleId,
             @RequestBody @Valid ArticleRequest request,
@@ -39,6 +40,7 @@ public class AuthorController {
     }
 
     @DeleteMapping("/{articleId}")
+    @PreAuthorize("hasRole('AUTHOR')")
     public void deleteArticle(
             @PathVariable Long articleId,
             HttpServletRequest httpRequest) {
@@ -46,6 +48,7 @@ public class AuthorController {
     }
 
     @PostMapping("/{articleId}/submit")
+    @PreAuthorize("hasRole('AUTHOR')")
     public ArticleResponse submitForReview(
             @PathVariable Long articleId,
             HttpServletRequest httpRequest) {
@@ -53,6 +56,7 @@ public class AuthorController {
     }
 
     @GetMapping
+    @PreAuthorize("hasRole('AUTHOR')")
     public List<ArticleResponse> getMyArticles(HttpServletRequest httpRequest) {
         return authorService.getMyArticles(authUtils.getCurrentUserId(httpRequest));
     }

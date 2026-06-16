@@ -34,8 +34,9 @@ public class AuthorService {
     private final SlugUtil slugUtil;
 
     private Article getOwnArticle(Long articleId, Long authorId) {
-        Article article = articleRepository.findById(articleId)
+        Article article = articleRepository.findByAuthorIdAndArticleId(articleId, authorId)
                 .orElseThrow(() -> new ResourceNotFoundException("Article not found"));
+
         return article;
     }
 
@@ -61,7 +62,7 @@ public class AuthorService {
     @CacheEvict(value = {"published-articles", "article", "articles-by-category", "articles-by-tag"}, allEntries = true)
     @Transactional
     public ArticleResponse updateArticle(Long articleId, ArticleRequest request, Long authorId) {
-        Article article = getOwnArticle(articleId, authorId);  // 👈 fetch from DB
+        Article article = getOwnArticle(articleId, authorId);
 
         switch (article.getStatus()) {
             case UNDER_REVIEW -> throw new IllegalStateException("Cannot edit while UNDER_REVIEW");

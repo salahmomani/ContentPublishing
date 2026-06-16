@@ -9,6 +9,7 @@ import com.project.ContentPublishing.service.User.ReaderService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,15 +24,18 @@ public class ReaderController {
     private final AuthUtils authUtils;
 
     @GetMapping
+    @PreAuthorize("hasRole('READER')")
     public List<ArticleResponse> browsesContent() {
         return readerService.browsesContent();
     }
 
+    @PreAuthorize("hasRole('READER')")
     @GetMapping("/{articleId}")
     public ArticleResponse viewArticle(@PathVariable Long articleId) {
         return readerService.viewArticle(articleId);
     }
 
+    @PreAuthorize("hasRole('READER')")
     @PostMapping("/{articleId}/like")
     public void likeArticle(
             @PathVariable Long articleId,
@@ -39,6 +43,7 @@ public class ReaderController {
         readerService.likeArticle(articleId, authUtils.getCurrentUserId(httpRequest));
     }
 
+    @PreAuthorize("hasRole('READER')")
     @PostMapping("/{articleId}/comments")
     public CommentResponse addComment(
             @PathVariable Long articleId,
@@ -47,6 +52,7 @@ public class ReaderController {
         return readerService.addComment(articleId, authUtils.getCurrentUserId(httpRequest), request);
     }
 
+    @PreAuthorize("hasRole('READER')")
     @DeleteMapping("/comments/{commentId}")
     public void removeComment(
             @PathVariable Long commentId,
