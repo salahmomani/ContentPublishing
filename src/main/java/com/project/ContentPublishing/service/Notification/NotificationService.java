@@ -25,7 +25,7 @@ public class NotificationService {
                 .recipient(article.getAuthor())
                 .type(NotificationType.ARTICLE_PUBLISHED)
                 .message("Your article has been published: " + article.getTitle())
-                .read(false)
+                .isRead(false)
                 .build();
 
         notificationRepository.save(notification);
@@ -41,7 +41,7 @@ public class NotificationService {
                 .recipient(article.getAuthor())
                 .type(NotificationType.ARTICLE_REJECTED)
                 .message("Your article was rejected: " + article.getTitle() + ". Reason: " + reason)
-                .read(false)
+                .isRead(false)
                 .build();
 
         notificationRepository.save(notification);
@@ -60,7 +60,7 @@ public class NotificationService {
                     .recipient(editor)
                     .type(NotificationType.ARTICLE_SUBMITTED)
                     .message("New article submitted for review: " + article.getTitle())
-                    .read(false)
+                    .isRead(false)
                     .build();
 
             notificationRepository.save(notification);

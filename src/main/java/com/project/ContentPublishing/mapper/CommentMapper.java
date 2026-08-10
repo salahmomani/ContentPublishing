@@ -1,6 +1,5 @@
 package com.project.ContentPublishing.mapper;
 
-import com.project.ContentPublishing.dto.Request.CommentRequest;
 import com.project.ContentPublishing.dto.Response.CommentResponse;
 import com.project.ContentPublishing.model.Comment;
 import org.mapstruct.Mapper;
