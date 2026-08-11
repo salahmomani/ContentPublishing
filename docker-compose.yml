@@ -3,18 +3,35 @@ services:
     image: mysql:8.4
     container_name: contentpublishing-mysql
     restart: unless-stopped
-
     environment:
-      MYSQL_ROOT_PASSWORD: root
+      MYSQL_ROOT_PASSWORD: "123456"
       MYSQL_DATABASE: mydb
       MYSQL_USER: contentuser
       MYSQL_PASSWORD: contentpass
-
     ports:
       - "3307:3306"
-
     volumes:
       - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p123456"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build: .
+    container_name: contentpublishing-app
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/mydb
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: "123456"
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+    depends_on:
+      mysql:
+        condition: service_healthy
 
 volumes:
   mysql_data:
